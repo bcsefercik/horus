@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # Custom modules
-from RSSIKit import RSSIKit
+from .RSSIKit import RSSIKit
 
-import inlo_utils as iu
+from . import inlo_utils as iu
 
 # Python built-in modules
 import subprocess, re

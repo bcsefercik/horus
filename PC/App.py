@@ -2,6 +2,7 @@
 
 from RSSIKitFactory import RSSIKitFactory, OSType
 
+
 factory = RSSIKitFactory(OSType.MACOS)
 kit = factory.getInstance()
 

@@ -17,7 +17,7 @@ class RSSIKitFactory():
 			from UbuntuRSSIKit import UbuntuRSSIKit
 			return UbuntuRSSIKit()
 		elif self.OS == OSType.MACOS:
-			from MacOSRSSIKit import MacOSRSSIKit
+			from RSSIKit.MacOSRSSIKit import MacOSRSSIKit
 			return MacOSRSSIKit()
 		elif self.OS == OSType.WINDOWS:
 			from WindowsRSSIKit import WindowsRSSIKit
