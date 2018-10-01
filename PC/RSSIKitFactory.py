@@ -10,16 +10,16 @@ class OSType(Enum):
 
 class RSSIKitFactory():
 	def __init__(self, OS=OSType.MACOS):
-		self.OS = OS
+		pass
 
-	def getInstance(self):
-		if self.OS == OSType.UBUNTU:
+	def getInstance(self, OS):
+		if OS == OSType.UBUNTU:
 			from UbuntuRSSIKit import UbuntuRSSIKit
 			return UbuntuRSSIKit()
-		elif self.OS == OSType.MACOS:
+		elif OS == OSType.MACOS:
 			from RSSIKit.MacOSRSSIKit import MacOSRSSIKit
 			return MacOSRSSIKit()
-		elif self.OS == OSType.WINDOWS:
+		elif OS == OSType.WINDOWS:
 			from WindowsRSSIKit import WindowsRSSIKit
 			return WindowsRSSIKit()
 
