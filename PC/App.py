@@ -3,6 +3,8 @@ import argparse
 
 from RSSIKitFactory import RSSIKitFactory, OSType
 
+def collectData():
+	pass
 
 factory = RSSIKitFactory(OSType.MACOS)
 kit = factory.getInstance()

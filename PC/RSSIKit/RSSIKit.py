@@ -14,7 +14,7 @@ class RSSIKit():
 		# To be implemented in subclasses.
 		raise NotImplementedError
 
-	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"]):
+	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"], **kwargs):
 		# frequency: int 1/s
 		# period: int s
 		# duration: int s
@@ -43,7 +43,12 @@ class RSSIKit():
 				status_code = 1
 				break
 
-			result.append({"tag": tag, "result": scanResult[1], "timestamp": timestamp})
+			instanceResult = {"tag": tag, "result": scanResult[1], "timestamp": timestamp}
+			
+			for key, val in kwargs.items():
+				instanceResult[key] = val
+
+			result.append(instanceResult)
 
 			finishTime = time.time()
 			time.sleep(max(0.3, (period-(finishTime-requestTime))))
