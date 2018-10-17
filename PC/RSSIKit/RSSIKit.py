@@ -14,7 +14,7 @@ class RSSIKit():
 		# To be implemented in subclasses.
 		raise NotImplementedError
 
-	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"], **kwargs):
+	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"], additionalInfo=None):
 		# frequency: int 1/s
 		# period: int s
 		# duration: int s
@@ -23,10 +23,16 @@ class RSSIKit():
 		totalTimeStart = time.time()
 		status_code = 0
 
+		if not frequency:
+			frequency = COLLECT_RSSI_DEFAULTS["frequency"]
+
 		if frequency != COLLECT_RSSI_DEFAULTS["frequency"]:
 			period = round(60/frequency)
 
 		period = max(3, period)
+
+		if not count:
+			count = COLLECT_RSSI_DEFAULTS["count"]
 
 		if count == COLLECT_RSSI_DEFAULTS["count"] and duration != COLLECT_RSSI_DEFAULTS["duration"]:
 			count = round(duration/period)
@@ -45,8 +51,9 @@ class RSSIKit():
 
 			instanceResult = {"tag": tag, "result": scanResult[1], "timestamp": timestamp}
 			
-			for key, val in kwargs.items():
-				instanceResult[key] = val
+			if additionalInfo:
+				for key, val in additionalInfo.items():
+					instanceResult[key] = val
 
 			result.append(instanceResult)
 

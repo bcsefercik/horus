@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 def convert(inp, labels, output):
-	i = open(inp, 'r')
-	l = open(labels, 'r')
-	o = open(output, 'w')
+	i = open(inp, 'r', encoding='utf-8')
+	l = open(labels, 'r', encoding='utf-8')
+	o = open(output, 'w', encoding='utf-8')
 
 	iContent = i.read().split("000000")
 	lContent = l.read().strip().split('\n')

@@ -37,7 +37,7 @@ class MacOSRSSIKit(RSSIKit):
 				if not macAddress:
 					continue
 
-				macAddress = macAddress[0]
+				macAddress = macAddress[-1]
 				parts = line.split(macAddress)
 
 				name = parts[0].strip()
@@ -49,9 +49,8 @@ class MacOSRSSIKit(RSSIKit):
 
 				output.append({"name": name, "macAddress": macAddress, "rssi": rssi, "channel": channel})
 
-		except:
+		except Exception as e:
+			print(e)
 			status_code = 1
 
 		return status_code, output
-
-	
