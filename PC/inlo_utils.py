@@ -11,7 +11,6 @@ def recursiveReplace(string, search, replace):
 	
 
 def printLog(text, debugMode=True, logType="info", title=True):
-	# TODO: Indentation should same for every line of the message.
 	logTypes = ["info", "ok", "warning", "error"]
 	titles = {"info": "INFO", "ok": "SUCCESS", "warning": "WARNING", "error": "ERROR"}
 	colors = {"ok": "\033[92m", "warning": "\033[93m", "error": "\033[91m"}
@@ -27,6 +26,9 @@ def printLog(text, debugMode=True, logType="info", title=True):
 			return -1
 
 	if title:
+		spaces = " " * (len(titles[logType]) + 2)
+		spaces = "\n" + spaces
+		text = text.replace("\n", spaces)
 		text = titles[logType] + ": " + text
 
 	if logType != "info":
