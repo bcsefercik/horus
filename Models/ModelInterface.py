@@ -2,8 +2,8 @@
 import abc
 
 class ModelInterface(abc.ABC):
-	def __init__(self, paramssPath, debugMode=False):
-		self.paramssPath = paramssPath
+	def __init__(self, paramsPath, debugMode=False):
+		self.paramsPath = paramsPath
 		self.debugMode = debugMode
 	
 	@abc.abstractmethod

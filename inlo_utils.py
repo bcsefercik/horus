@@ -38,3 +38,6 @@ def printLog(text, debugMode=True, logType="info", title=True):
 		print(text)
 
 	return 0
+
+def isNone(inp):
+	return isinstance(inp, type(None))

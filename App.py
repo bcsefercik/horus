@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
 				model.train(opt.datasetpath)
 
-			elif taskName == "predict":
+			elif taskName == "predict" or  taskName == "test":
 				if not os.path.isfile(opt.modelparameterspath):
 					iu.printLog("Missing paramaters.\nAn existing model parameters file at 'modelparameterspath' is required.", logType="error")
 					sys.exit(1)
@@ -121,7 +121,8 @@ if __name__ == '__main__':
 							keyboardEvent.set()
 
 				thread = threading.Thread(target=getExitCommand, args=())
-				thread.start()
+				# If this thread is started, then one can take text inputs from the user in the terminal.
+				# thread.start()
 
 				period = 1 / opt.frequency
 				
