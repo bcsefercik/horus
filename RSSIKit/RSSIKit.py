@@ -2,7 +2,10 @@
 
 import time, datetime
 
+import inlo_utils as iu
+
 COLLECT_RSSI_DEFAULTS = {"frequency": 20, "period": 3, "duration": 300, "count": 100}
+DEBUG_ITER_LINE_FORMAT = "%8d%16d%22s"
 
 class RSSIKit():
 	global COLLECT_RSSI_DEFAULTS
@@ -14,7 +17,7 @@ class RSSIKit():
 		# To be implemented in subclasses.
 		raise NotImplementedError
 
-	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"], additionalInfo=None):
+	def collectRSSI(self, tag=None, frequency=COLLECT_RSSI_DEFAULTS["frequency"], period=COLLECT_RSSI_DEFAULTS["period"], count=COLLECT_RSSI_DEFAULTS["count"], duration=COLLECT_RSSI_DEFAULTS["duration"], additionalInfo=None, debugMode=False):
 		# frequency: int 1/s
 		# period: int s
 		# duration: int s
@@ -29,7 +32,7 @@ class RSSIKit():
 		if frequency != COLLECT_RSSI_DEFAULTS["frequency"]:
 			period = round(60/frequency)
 
-		period = max(3, period)
+		period = max(0.2, period)
 
 		if not count:
 			count = COLLECT_RSSI_DEFAULTS["count"]
@@ -38,9 +41,11 @@ class RSSIKit():
 			count = round(duration/period)
 
 		result = []
+		index = 0
 
+		iu.printLog(DEBUG_ITER_LINE_FORMAT.replace("d", "s")%("Sample #","AP Count","Time"), debugMode)
 
-		while len(result) < count:
+		while index < count:
 			requestTime = time.time()
 			timestamp = datetime.datetime.fromtimestamp(requestTime).strftime('%Y-%m-%d %H:%M:%S')			
 
@@ -58,7 +63,12 @@ class RSSIKit():
 			result.append(instanceResult)
 
 			finishTime = time.time()
-			time.sleep(max(0.3, (period-(finishTime-requestTime))))
+
+			index += 1
+
+			iu.printLog(DEBUG_ITER_LINE_FORMAT%(index, len(scanResult[1]), timestamp), debugMode)
+
+			time.sleep(max(0.1, (period-(finishTime-requestTime))))
 
 		totalTime = time.time() - totalTimeStart
 

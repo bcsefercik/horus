@@ -21,7 +21,7 @@ def filterData(resultList):
 	# TODO: Gather mac list of mobile phones and stuff and filter.
 	return resultList
 
-def collect(datasetPath, tag, count=None, frequency=None, additionalInfo=None):
+def collect(datasetPath, tag, count=None, frequency=None, additionalInfo=None, ):
 	statusCode = 0
 	dataList = None
 
@@ -36,7 +36,7 @@ def collect(datasetPath, tag, count=None, frequency=None, additionalInfo=None):
 
 	iu.printLog("Starting to collect data.", DEBUG)
 
-	returnCode, resultList, totalTime = kit.collectRSSI(tag = tag, frequency=frequency, count=count, additionalInfo=additionalInfo)
+	returnCode, resultList, totalTime = kit.collectRSSI(tag = tag, frequency=frequency, count=count, additionalInfo=additionalInfo, debugMode=DEBUG)
 
 	if returnCode != 0:
 		iu.printLog("Code from RSSIKit.collectRSSI(): %d" % returnCode, debugMode=True, logType="error")
@@ -73,10 +73,14 @@ if __name__ == '__main__':
 	else:
 		taskName = opt.task.lower()
 		if taskName == "collect":
-			if not (opt.datasetpath and os.path.isfile(opt.datasetpath.replace(".", "/")) and opt.tag):
+			if not (opt.datasetpath and opt.tag):
 				iu.printLog("Missing paramaters.\nValid 'tag' and 'datasetpath' are required.", logType="error")
 				sys.exit(1)
 			
+			if not os.path.isfile(opt.datasetpath.replace(".", "/")):
+				with open(opt.datasetpath, "w+", encoding='utf-8') as json_file:
+					json.dump([], json_file, ensure_ascii=False, indent=2)
+
 			collect(opt.datasetpath, opt.tag, count=opt.count, frequency=opt.frequency, additionalInfo=opt.additionalinfo)
 		else:
 			if not (opt.modelpath and os.path.isdir(opt.modelpath.replace(".", "/"))):
