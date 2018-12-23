@@ -19,7 +19,7 @@ class MacOSRSSIKit(RSSIKit):
 				bundle_path='/System/Library/Frameworks/CoreWLAN.framework',
 				module_globals=globals())
 
-		self.interface= None
+		self.interface = None
 		for iname in CWInterface.interfaceNames():
 			self.interface = CWInterface.interfaceWithName_(iname)
 		

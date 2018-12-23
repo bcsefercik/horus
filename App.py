@@ -28,12 +28,12 @@ def collect(datasetPath, tag, count=None, frequency=None, additionalInfo=None, )
 	if os.path.isfile(datasetPath):
 		with open(datasetPath, encoding='utf-8') as json_file:
 			dataList = json.load(json_file)
-
+			
 		iu.printLog("Loaded an existing dataset.", DEBUG)
 	else:
 		dataList = []
 		iu.printLog("Created a new dataset.", DEBUG)
-
+	
 	iu.printLog("Starting to collect data.", DEBUG)
 
 	returnCode, resultList, totalTime = kit.collectRSSI(tag = tag, frequency=frequency, count=count, additionalInfo=additionalInfo, debugMode=DEBUG)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 				iu.printLog("Missing paramaters.\nValid 'tag' and 'datasetpath' are required.", logType="error")
 				sys.exit(1)
 			
-			if not os.path.isfile(opt.datasetpath.replace(".", "/")):
+			if not os.path.isfile(opt.datasetpath):
 				with open(opt.datasetpath, "w+", encoding='utf-8') as json_file:
 					json.dump([], json_file, ensure_ascii=False, indent=2)
 

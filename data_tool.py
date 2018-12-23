@@ -2,6 +2,8 @@
 import json
 import numpy as np
 
+import inlo_utils as iu
+
 def convert(inp, labels, output):
 	i = open(inp, 'r', encoding='utf-8')
 	l = open(labels, 'r', encoding='utf-8')
@@ -70,7 +72,7 @@ def predictGaussian(x, mu, sigma2):
 	# x: a numver or a number array
 	return 1/np.sqrt(2 * np.pi * sigma2) *np.exp( - (x - mu)**2 / (2 * sigma2) )
 
-def createLocationRSSISeries(inp, toFile = None):
+def createLocationRSSISeries(inp, toFile = None, macDict = None):
 	status = 0
 	data = None
 	if isinstance(inp, str):
@@ -80,10 +82,11 @@ def createLocationRSSISeries(inp, toFile = None):
 		data = inp
 
 	series = {}
-	macDict = createMacDict(inp)
-	if not macDict:
-		status = 1
-		return status, series
+	if iu.isNone(macDict):
+		macDict = createMacDict(inp)
+		if not macDict:
+			status = 1
+			return status, series
 
 	for instance in data:
 		tag = instance["tag"]
@@ -102,7 +105,7 @@ def createLocationRSSISeries(inp, toFile = None):
 
 	for location in series:
 		for ap in series[location]:
-			if sum(series[location][ap]["timeSeries"]) == 0:
+			if len(series[location][ap]["timeSeries"]) == 0:
 				series[location][ap]["timeSeries"].clear()
 				series[location][ap]["timeSeries"] = None
 
@@ -115,7 +118,8 @@ def createLocationRSSISeries(inp, toFile = None):
 
 	return status, series
 
-
+def createRSSIDict(macDict, rssiResult):
+	return {macDict[ins["macAddress"]]: ins["rssi"] for ins in rssiResult if macDict.get(ins["macAddress"], False)}
 
 if __name__ == '__main__':
 	import argparse
