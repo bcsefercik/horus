@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 
 import data_tool as dt
 
-from Models.Horus.Model import Horus
+from Models.Horus.Model import Horus,Model
 
-horus = Horus("a.dat")
+horus = Horus()
 
 horus.loadDataset("20181218-1730_ArcelikInnovationOffice.json")
 
@@ -24,3 +24,5 @@ sampleRSSIResult = [{"name": "arwifi","macAddress": "00:a6:ca:10:2e:50","rssi": 
 sampleRSSIDict = dt.createRSSIDict(horus.macDict, sampleRSSIResult)
 
 horus.createClusters(10,2)
+
+horusModel = Model()

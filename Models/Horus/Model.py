@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import pickle
 
 import numpy as np
 
@@ -9,19 +10,42 @@ import data_tool as dt
 from ..ModelInterface import ModelInterface
 
 class Horus():
-	def __init__(self, paramsPath, datasetPath=None):
-		self.params = paramsPath
+	def __init__(self, datasetPath=None):
 		self.data = None
-		self.macDict = None
-
-		self.k = 10
-		self.q = 2
 
 		if datasetPath:
 			self.loadDataset(datasetPath)
 		
+		self.macDict = None
+		self.k = 10
+		self.q = 2
 		self.radioMap = None
 		self.clusters = {"keys": None, "locations": None}
+
+	def saveParameters(self, paramsPath):
+		params = {	"macDict": self.macDict, 
+					"k": self.k, 
+					"q": self.q, 
+					"radioMap": self.radioMap, 
+					"clusterKeys": self.clusters["keys"],
+					"clusterLocations": self.clusters["locations"]
+				}
+
+		with open(paramsPath, 'wb') as f:
+			pickle.dump(params, f, pickle.HIGHEST_PROTOCOL)
+
+	def loadParameters(self, paramsPath):
+		params = None
+		with open(paramsPath, 'rb') as f:
+			params = pickle.load(f)
+
+		self.macDict = params["macDict"]
+		self.k = params["k"]
+		self.q = params["q"]
+		self.radioMap = params["radioMap"]
+		self.clusters["keys"] = params["clusterKeys"]
+		self.clusters["locations"] = params["clusterLocations"]
+		# print(params)
 
 	def loadDataset(self, datasetPath):
 		with open(datasetPath, encoding='utf-8') as json_file:
@@ -103,7 +127,7 @@ class Horus():
 		
 		if q == 0:
 			status = 1
-			return status, clusterIndex, locationCandidates
+			return status, clusterIndices, locationCandidates
 
 		searchKey = set(sortedAP[0:q])
 
@@ -121,43 +145,77 @@ class Horus():
 				for i in range(0, clusterKeysLength):
 					if clusterKeys[i].issubset(searchKey):
 						clusterIndices.append(i)
-						locationCandidates.append(clusterElements[i])
+						locationCandidates.extend(clusterElements[i])
 
 				if len(locationCandidates) > 0:
 					break
 
 				q += 1
 
+		locationCandidates = list(set(locationCandidates))
+
 		return status, clusterIndices, locationCandidates
 
-	def predict(self, rssiResult, threshold=0.0):
+	def computeLocationJointProbability(self, locationCandidate, rssiDict, log=False):
+		probability = 0 if log else 1
+
+		for apID in rssiDict:
+			locationAP = self.radioMap[locationCandidate].get(apID, None)
+			if locationAP:
+				gaussianPrediction = round(dt.predictGaussian(rssiDict[apID], locationAP["mean"], locationAP["variance"]), 5)
+				
+				if gaussianPrediction > 1e-4:
+					if log:
+						probability += np.log(gaussianPrediction)
+					else:
+						probability *= gaussianPrediction
+
+		return probability
+
+	def predict(self, rssiResult, threshold=1.0):
 		status = 0
-		tagList = []
-		confidenceList = []
+		locationProbabilities = {}
+		sortedLocationProbabilities = []
 
 		rssiDict = dt.createRSSIDict(self.macDict, rssiResult)
 		sortedAPs = self.sortedAP(rssiDict)
 
 		status, clusterIndices, locationCandidates = self.findCluster(sortedAPs)
-
+		
 		if status != 0:
 			status = 1
-			return status, tagList, confidenceList
+			return status, sortedLocationProbabilities
 
+		for locationTag in locationCandidates:
+			locationProbabilities[locationTag] = self.computeLocationJointProbability(locationTag, rssiDict)
 		
-			
-
+		sortedLocationProbabilities = sorted(locationProbabilities.items(), key=lambda kv: kv[1], reverse=True)
+		
+		return status, sortedLocationProbabilities
 
 
 class Model(ModelInterface):
-	"""docstring for Model"""
-	def __init__(self, paramsPath, debugMode=False):
-		ModelInterface.__init__(self, paramsPath, debugMode=debugMode)
-		self.horus = Horus(paramsPath)
+	def __init__(self, paramsPath=None, debugMode=False):
+		ModelInterface.__init__(self, paramsPath=None, debugMode=debugMode)
+		self.horus = Horus()
+		self.paramsPath = paramsPath
 		
-	def train(self, datasetPath):
-		self.horus.loadDataset(datasetPath)
+	def train(self, datasetPath, *args, **kwargs):
+		if iu.isNone(self.horus.data):
+			self.horus.loadDataset(datasetPath)
 		self.horus.radioMapBuilder()
+		self.horus.sortedAPRadioMap()
+		self.horus.createClusters()
+		if self.paramsPath:
+			self.saveParameters()
+		elif kwargs.get("paramsPath"):
+			self.saveParameters(kwargs["paramsPath"])
 
-	def predict(self, rssi):
-		return 0,2
+	def predict(self, rssiResult):
+		return self.horus.predict(rssiResult)
+
+	def saveParameters(self, paramsPath=None):
+		self.horus.saveParameters(self.paramsPath if self.paramsPath else paramsPath)
+	
+	def loadParameters(self, paramsPath=None):
+		self.horus.loadParameters(self.paramsPath if self.paramsPath else paramsPath)

@@ -56,6 +56,37 @@ def createMacDict(inp, toFile = None):
 
 	return macDict
 
+
+def analyseMacDict(inp, macDict=None, toFile=None):
+	data = None
+	if isinstance(inp, str):
+		with open(inp) as f:
+			data = json.load(f)
+	else:
+		data = inp
+
+	if iu.isNone(macDict):
+		macDict = createMacDict(inp)
+
+	statDict = {}
+	for instance in data:
+		for ap in instance["result"]:
+			if not statDict.get(ap["macAddress"]):
+				statDict[ap["macAddress"]] = {	"id": macDict[ap["macAddress"]],
+												"name": ap["name"],
+											  	"locations": {instance["tag"]: [ap["rssi"]]}}
+			else:
+				if not statDict[ap["macAddress"]]["locations"].get(instance["tag"], None):
+					statDict[ap["macAddress"]]["locations"][instance["tag"]] = [ap["rssi"]]
+				else:
+					statDict[ap["macAddress"]]["locations"][instance["tag"]].append(ap["rssi"])
+
+	if toFile:
+		with open(toFile, "w") as of:
+			json.dump(statDict, of, indent=2)
+
+	return statDict, macDict
+
 def createHistogram(series):
 	valueDict = {}
 
@@ -70,7 +101,7 @@ def createHistogram(series):
 
 def predictGaussian(x, mu, sigma2):
 	# x: a numver or a number array
-	return 1/np.sqrt(2 * np.pi * sigma2) *np.exp( - (x - mu)**2 / (2 * sigma2) )
+	return 1/(np.sqrt(2 * np.pi * sigma2) *np.exp( - (x - mu)**2 / (2 * sigma2) ) + 1e-30)
 
 def createLocationRSSISeries(inp, toFile = None, macDict = None):
 	status = 0
@@ -119,7 +150,10 @@ def createLocationRSSISeries(inp, toFile = None, macDict = None):
 	return status, series
 
 def createRSSIDict(macDict, rssiResult):
+	if iu.isNone(macDict):
+		return {}
 	return {macDict[ins["macAddress"]]: ins["rssi"] for ins in rssiResult if macDict.get(ins["macAddress"], False)}
+
 
 if __name__ == '__main__':
 	import argparse

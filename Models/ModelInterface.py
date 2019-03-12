@@ -2,8 +2,8 @@
 import abc
 
 class ModelInterface(abc.ABC):
+	@abc.abstractmethod
 	def __init__(self, paramsPath, debugMode=False):
-		self.paramsPath = paramsPath
 		self.debugMode = debugMode
 	
 	@abc.abstractmethod
@@ -11,6 +11,6 @@ class ModelInterface(abc.ABC):
 		pass
 		
 	@abc.abstractmethod
-	def predict(self, rssi):
+	def predict(self, rssiResult):
 		pass
-	
+		

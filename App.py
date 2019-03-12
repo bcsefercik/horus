@@ -11,6 +11,7 @@ import importlib
 
 from RSSIKitFactory import RSSIKitFactory, OSType
 import inlo_utils as iu
+import data_tool as dt
 
 DEBUG = True
 
@@ -82,18 +83,52 @@ if __name__ == '__main__':
 					json.dump([], json_file, ensure_ascii=False, indent=2)
 
 			collect(opt.datasetpath, opt.tag, count=opt.count, frequency=opt.frequency, additionalInfo=opt.additionalinfo)
+		
+		elif taskName == "sift":
+			if not (opt.datasetpath and os.path.isfile(opt.datasetpath)):
+				iu.printLog("Missing paramaters.\nProper 'datasetpath' is required.", logType="error")
+				sys.exit(1)
+
+			analysisResult, macDict = dt.analyseMacDict(opt.datasetpath)
+			
+			for mac in analysisResult:
+				instance = analysisResult[mac]
+				print(instance["id"], instance["name"], mac, len(instance["locations"]))
+
+			while True:
+				userInput = input("# ")
+				userInput = userInput.lower().split(" ")
+
+				userCommand = userInput[0]
+				userParams = userInput[1:] if len(userInput)>1 else None
+
+				if userCommand == "quit" or userCommand == "q":
+					break
+				elif userCommand == "save":
+					pass
+				elif userCommand in ["delete", "d", "remove"]:
+					macDict.pop(userParams[0])
+					analysisResult.pop(userParams[0])
+					iu.printLog("Successfully removed. New mac dictionary:")
+					for mac in analysisResult:
+						instance = analysisResult[mac]
+						print(instance["id"], instance["name"], mac, len(instance["locations"]))
+
+		elif taskName == "validate":
+			# TODO
+			pass
 		else:
-			if not (opt.modelpath and os.path.isdir(opt.modelpath.replace(".", "/"))):
-				iu.printLog("You need to provide a correct model path.", logType="error")
+			if not (opt.modelpath and os.path.isdir(opt.modelpath)):
+				iu.printLog("You need to provide a correct model path with '--modelpath' parameter.", logType="error")
 				sys.exit(1)
 
 			if not opt.modelparameterspath:
-				iu.printLog("Missing paramaters.\nValid 'modelparameterspath' is required.", logType="error")
+				iu.printLog("Missing paramaters.\nValid '--modelparameterspath' is required.", logType="error")
 				sys.exit(1)
 
 			modelModulePath = opt.modelpath.replace("/", ".") + ".Model"
 			module = importlib.import_module(modelModulePath)
-			model = module.Model(opt.modelparameterspath, debugMode=DEBUG)
+			model = module.Model(debugMode=DEBUG)
 
 			if taskName == "train":
 				if not (opt.datasetpath and os.path.isfile(opt.datasetpath)):
@@ -106,12 +141,15 @@ if __name__ == '__main__':
 				
 				iu.printLog("Starting training with dataset at {}.".format(opt.datasetpath), debugMode=DEBUG)
 
-				model.train(opt.datasetpath)
+				model.train(opt.datasetpath, paramssPath=opt.modelparameterspath)
+
 
 			elif taskName == "predict" or  taskName == "test":
 				if not os.path.isfile(opt.modelparameterspath):
-					iu.printLog("Missing paramaters.\nAn existing model parameters file at 'modelparameterspath' is required.", logType="error")
+					iu.printLog("Missing paramaters.\nValid '--modelparameterspath' is required.", logType="error")
 					sys.exit(1)
+
+				model.loadParameters(opt.modelparameterspath)
 
 				keyboardEvent = threading.Event()
 
@@ -140,7 +178,7 @@ if __name__ == '__main__':
 						sys.exit(1)
 
 					statusCode, prediction = model.predict(rssi)
-					if statusCode:
+					if statusCode>1:
 						iu.printLog("{}.predict(): {}".format(modelModulePath, statusCode), logType="error")
 						keyboardEvent.set()
 						sys.exit(1)
@@ -148,11 +186,7 @@ if __name__ == '__main__':
 					iu.printLog("{}: {}".format(datetime.datetime.now(), prediction))
 
 					iterationTime = time.time() - startTime
-					time.sleep(max(0, period - iterationTime))
-
-			elif taskName == "validate":
-				# TODO
-				pass
+					time.sleep(max(0, period*60 - iterationTime))
 
 			else:
 				iu.printLog("You should enter a valid task name.", logType="error")
